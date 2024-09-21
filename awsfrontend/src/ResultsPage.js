@@ -16,24 +16,26 @@ const ResultsPage = () => {
           className="pdf-viewer"
         />
       </div>
-
-      {/* Camera Icon */}
       <div className="camera-section">
-        <img 
-          src="https://cdn-icons-png.flaticon.com/512/72/72500.png" 
-          alt="Camera Icon" 
-          className="camera-icon"
-        />
-      </div>
+  <button className="camera-button">
+    <img 
+      src="/cameraIcon.png" 
+      alt="Camera Icon" 
+      className="camera-icon"
+    />
+  </button>
+</div>
 
-      {/* Microphone Icon */}
-      <div className="microphone-section">
-        <img 
-          src="https://cdn-icons-png.flaticon.com/512/848/848043.png" 
-          alt="Microphone Icon" 
-          className="microphone-icon"
-        />
-      </div>
+{/* Microphone Button */}
+<div className="microphone-section">
+  <button className="microphone-button">
+    <img 
+      src="/microphoneIcon.png"
+      alt="Microphone Icon" 
+      className="microphone-icon"
+    />
+  </button>
+</div>
     </div>
   );
 };

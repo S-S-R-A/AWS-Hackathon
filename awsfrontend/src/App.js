@@ -1,10 +1,10 @@
 import React from 'react';
-import ResultsPage from './ResultsPage'; // Capitalized import
+import HomePage from './HomePage';
 
 function App() {
   return (
     <div>
-      <ResultsPage /> {/* Capitalized component name */}
+      <HomePage/> 
     </div>
   );
 }

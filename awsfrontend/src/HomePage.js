@@ -32,7 +32,9 @@ const HomePage = () => {
       
       <div className="docuvoice">
         <button>
-        <img src="https://cdn-icons-png.flaticon.com/512/72/72500.png" alt="DocuVoice Camera" />
+        <img 
+          src="/cameraIcon.png" 
+          alt="DocuVoice Camera"/>
         </button>
       </div>
 
