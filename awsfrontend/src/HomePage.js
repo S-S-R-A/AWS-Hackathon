@@ -1,8 +1,15 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import './styles/HomePage.css';
 
 
 const HomePage = () => {
+  const navigate = useNavigate(); // Hook for navigation
+
+  const handleCameraClick = () => {
+    navigate('/results'); // Redirect to the results page
+  };
+
   return (
     <div className="container">
       <div className="flags">
@@ -31,7 +38,7 @@ const HomePage = () => {
       
       
       <div className="docuvoice">
-        <button>
+        <button onClick={handleCameraClick}>
         <img 
           src="/cameraIcon.png" 
           alt="DocuVoice Camera"/>
