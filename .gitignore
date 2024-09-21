@@ -1,2 +1,6 @@
 #ignore files in virtual env
 venv/
+.venv/
+
+#ignore json files
+*.json
