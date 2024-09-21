@@ -140,31 +140,31 @@ def process_file(document_name, s3_bucket_name, textract_client, s3_client):
     )
 
     # Abhi does cell stuff here
-    cell_keys, cell_values, cell_blocks = genBlockMap(test_response['Blocks'])
+    # cell_keys, cell_values, cell_blocks = genBlockMap(test_response['Blocks'])
 
-    cells_text = []
-    for block in test_response['Blocks']:
-        if (block['BlockType'] == 'CELL'):
-            cell_arr = []
-            for relat in block.get('Relationships', []):
-                for id in relat['Ids']:
-                    id_string = id
-                    found = True
-                    while found and (cell_blocks[id_string]['BlockType'] != 'WORD' and cell_blocks[id_string]['BlockType'] != 'LINE'):
-                        print(cell_blocks[id_string]['BlockType'])
-                        inside_relats = cell_blocks[id_string].get('Relationships', [])
-                        if (len(inside_relats) > 0):
-                            id_string = inside_relats[0]['Ids'][0]
-                            print(len(inside_relats))
-                        else:
-                            found = False
-                            break
-                    if found: 
-                        cell_arr.append(cell_blocks[id]['Text'])
-            cells_text.append(cell_arr)
-    print(cells_text)    
+    # cells_text = []
+    # for block in test_response['Blocks']:
+    #     if (block['BlockType'] == 'CELL'):
+    #         cell_arr = []
+    #         for relat in block.get('Relationships', []):
+    #             for id in relat['Ids']:
+    #                 id_string = id
+    #                 found = True
+    #                 while found and (cell_blocks[id_string]['BlockType'] != 'WORD' and cell_blocks[id_string]['BlockType'] != 'LINE'):
+    #                     print(cell_blocks[id_string]['BlockType'])
+    #                     inside_relats = cell_blocks[id_string].get('Relationships', [])
+    #                     if (len(inside_relats) > 0):
+    #                         id_string = inside_relats[0]['Ids'][0]
+    #                     else:
+    #                         found = False
+    #                         break
+    #                 if found: 
+    #                     cell_arr.append(cell_blocks[id]['Text'])
+    #         cells_text.append(cell_arr)
+    # print(cells_text)    
 
-
+    # Now Abhi does query stuff for W-2
+    
 
 
 
