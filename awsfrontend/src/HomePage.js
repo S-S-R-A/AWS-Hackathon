@@ -20,17 +20,18 @@ const HomePage = () => {
 
   const handleUploadFile = (event) => {
     const file = event.target.files[0];
-    // You can store the file in state or local storage if needed
+    const fileUrl = URL.createObjectURL(file);
     console.log('Uploaded file:', file);
-
-    // Navigate to results page after file upload
-    navigate('/results', { state: { file } });
+    navigate('/results', { state: { file: fileUrl, fileType: file.type } });
   };
 
   const handleTakePhoto = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       setMediaStream(stream);
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream; // Set the video source to the stream
+      }
     } catch (error) {
       console.error('Error accessing camera:', error);
     }
@@ -45,11 +46,7 @@ const HomePage = () => {
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
     const imageUrl = canvas.toDataURL('image/png');
     setPhotoURL(imageUrl);
-
-    // Navigate to results page after capturing photo
-    navigate('/results', { state: { photoURL: imageUrl } });
-    
-    // Stop the camera stream
+    navigate('/results', { state: { file: imageUrl, fileType: 'image/png' } });
     stopMediaStream();
   };
 
@@ -61,7 +58,6 @@ const HomePage = () => {
   }, [mediaStream]);
 
   useEffect(() => {
-    // Cleanup media stream on component unmount
     return () => {
       stopMediaStream();
     };
@@ -75,17 +71,11 @@ const HomePage = () => {
           <p>English</p>
         </button>
         <button className="flag-item">
-          <img
-            src="https://upload.wikimedia.org/wikipedia/commons/f/fc/Flag_of_Mexico.svg"
-            alt="Español"
-          />
+          <img src="https://upload.wikimedia.org/wikipedia/commons/f/fc/Flag_of_Mexico.svg" alt="Español" />
           <p>Español</p>
         </button>
         <button className="flag-item">
-          <img
-            src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Flag_of_the_People%27s_Republic_of_China.svg"
-            alt="Chinese"
-          />
+          <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Flag_of_the_People%27s_Republic_of_China.svg" alt="Chinese" />
           <p>中文</p>
         </button>
       </div>
@@ -127,7 +117,7 @@ const HomePage = () => {
           <input
             id="file-upload"
             type="file"
-            accept="image/*"
+            accept="image/*application/pdf"
             style={{ display: 'none' }}
             onChange={handleUploadFile}
           />
@@ -135,7 +125,7 @@ const HomePage = () => {
 
           {mediaStream && (
             <div className="camera-preview">
-              <video ref={videoRef} autoPlay playsInline srcObject={mediaStream}></video>
+              <video ref={videoRef} autoPlay playsInline></video>
               <button onClick={capturePhoto}>Capture Photo</button>
             </div>
           )}
