@@ -10,6 +10,8 @@ const HomePage = () => {
   const videoRef = useRef(null);
   const navigate = useNavigate(); // Hook for navigation
 
+  
+
   const togglePopup = () => {
     setIsOpen(!isOpen);
   };
@@ -98,11 +100,17 @@ const HomePage = () => {
         {isOpen && (
           <div className="popup-overlay">
             <div className="popup">
-              <h2>This is a Popup!</h2>
-              <p>Click the button below to close the popup.</p>
-              <button onClick={togglePopup} className="close-btn">
+              <h2>Instructions</h2>
+              <video width = "850" height = "600" controls>
+                <source src = "/instructions.mp4" type = "video/mp4" />
+              </video>
+
+            <div className="close-btn">
+              <button onClick={togglePopup}>
                 Close
               </button>
+            </div>
+            
             </div>
           </div>
         )}
