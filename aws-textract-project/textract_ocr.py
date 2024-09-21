@@ -108,69 +108,174 @@ def generateMLJSON(test_response, document_name):
     }
     return final_output
 
+def list_all_objects(s3_client, bucket_name):
+    paginator = s3_client.get_paginator('list_objects_v2')
+    page_iterator = paginator.paginate(Bucket=bucket_name)
+    all_objects = []
+    for page in page_iterator:
+        if 'Contents' in page:
+            all_objects.extend(page['Contents'])
+    return all_objects
 
-# Initializes the Textract Client with the correct region
-textract = boto3.client('textract', region_name='us-east-1')
-s3 = boto3.client('s3')
+def process_file(document_name, s3_bucket_name, textract_client, s3_client):
+    # Skip if the object is a directory (ends with '/')
+    if document_name.endswith('/'):
+        return
 
-# S3 Bucket and file
-s3_bucket_name = 'w2-datasets'
-document_name = 'dataset1/W2_XL_input_clean_1000.jpg'
-s3_object_name = 'ML' + document_name
+    # Skip if the object is not an image (adjust extensions as needed)
+    if not document_name.lower().endswith(('.jpg', '.jpeg', '.png', '.pdf')):
+        return
 
-test = 'dataset1/W2_XL_input_clean_1000.jpg'
+    print(f"Processing file: {document_name}")
+
+    # Generate the s3_object_name and output_filepath
+    base_name = os.path.splitext(os.path.basename(document_name))[0]
+    s3_object_name = f'output/ML{base_name}.json'
+    output_filepath = f'aws-textract-project/out/ML{base_name}.json'
+
+    # Call Textract to analyze the document
+    test_response = textract_client.analyze_document(
+        Document={'S3Object': {'Bucket': s3_bucket_name, 'Name': document_name}},
+        FeatureTypes=['FORMS', 'TABLES']
+    )
+
+    # Abhi does cell stuff here
+    cell_keys, cell_values, cell_blocks = genBlockMap(test_response['Blocks'])
+
+    cells_text = []
+    for block in test_response['Blocks']:
+        if (block['BlockType'] == 'CELL'):
+            cell_arr = []
+            for relat in block.get('Relationships', []):
+                for id in relat['Ids']:
+                    id_string = id
+                    found = True
+                    while found and (cell_blocks[id_string]['BlockType'] != 'WORD' and cell_blocks[id_string]['BlockType'] != 'LINE'):
+                        print(cell_blocks[id_string]['BlockType'])
+                        inside_relats = cell_blocks[id_string].get('Relationships', [])
+                        if (len(inside_relats) > 0):
+                            id_string = inside_relats[0]['Ids'][0]
+                            print(len(inside_relats))
+                        else:
+                            found = False
+                            break
+                    if found: 
+                        cell_arr.append(cell_blocks[id]['Text'])
+            cells_text.append(cell_arr)
+    print(cells_text)    
 
 
-test_response = textract.analyze_document(
-    Document={'S3Object': {'Bucket': s3_bucket_name, 'Name': document_name}},
-    FeatureTypes=['FORMS', 'TABLES']
-)
-
-# Create a list to hold the word and bounding box data
-output_data = generateMLJSON(test_response, document_name)
-
-output_filepath = 'out/' + os.path.splitext(document_name)[0] + '.json'
-
-# Write the list of dictionaries to a JSON file
-with open(output_filepath, 'w') as file:
-    json.dump(output_data, file, indent=4)
-
-# Upload the JSON file to S3
-s3.upload_file(output_filepath, s3_bucket_name, s3_object_name)
 
 
-"""
-cell_keys, cell_values, cell_blocks = genBlockMap(test_response['Blocks'])
 
-cells_text = []
-for block in test_response['Blocks']:
-    cell_arr = []
-    if (block['BlockType'] == 'CELL'):
-        for relat in block.get('Relationships', []):
-            for id in relat['Ids']:
-                while cell_blocks[id]['BlockType'] != 'WORD' or cell_blocks[id]['BlockType'] != 'LINE':
-                    cell_blocks[id].get('Relationships', [])
-                cell_arr.append()
-        cells_text.append(cell_arr)
-print(cells_text)      
 
-numTypes(test_response)
 
-array = genMap(test_response)
 
-# print(extract_key_value_pairs(test_response))
 
-# print('\n\nTables')
-# for block in test_response['Blocks']:
-#     if (block['BlockType'] == 'TABLE'):
-#         print(block)
-# # print('\n\nCells')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    # # Generate the output data
+    # output_data = generateMLJSON(test_response, document_name)
+
+    # # Ensure the output directory exists
+    # os.makedirs(os.path.dirname(output_filepath), exist_ok=True)
+
+    # # Write the output data to a JSON file
+    # with open(output_filepath, 'w') as file:
+    #     json.dump(output_data, file, indent=4)
+
+    # # Upload the JSON file back to S3
+    # s3_client.upload_file(output_filepath, s3_bucket_name, s3_object_name)
+
+    # # Delete the local JSON file to save space
+    # try:
+    #     os.remove(output_filepath)
+    # except OSError as e:
+    #     print(f"Error deleting file {output_filepath}: {e}")
+
+def main():
+    # Initialize the Textract and S3 clients
+    textract = boto3.client('textract', region_name='us-east-1')
+    s3 = boto3.client('s3')
+
+    # S3 Bucket
+    s3_bucket_name = 'w2-datasets'
+
+    # Specify the document name if processing a single file
+    # Set to None to process all files in the bucket
+    document_name = 'dataset1/W2_XL_input_clean_1000.pdf'
+    # document_name = None  # Replace with 'your-file-path.jpg' to process a single file
+
+    if document_name:
+        # Process a single file
+        process_file(document_name, s3_bucket_name, textract, s3)
+    else:
+        # List all objects in the bucket
+        all_objects = list_all_objects(s3, s3_bucket_name)
+
+        # Process each object
+        for obj in all_objects:
+            document_name = obj['Key']
+            process_file(document_name, s3_bucket_name, textract, s3)
+
+if __name__ == "__main__":
+    main()
+  
+
+# numTypes(test_response)
+
+# array = genMap(test_response)
+
+# # print(extract_key_value_pairs(test_response))
+
+# # print('\n\nTables')
 # # for block in test_response['Blocks']:
-# #     if (block['BlockType'] == 'CELL'):
+# #     if (block['BlockType'] == 'TABLE'):
 # #         print(block)
-# print('\n\nMerged_cell')
-# for block in test_response['Blocks']:
-#     if (block['BlockType'] == 'MERGED_CELL'):
-#         print(block)
+# # # print('\n\nCells')
+# # # for block in test_response['Blocks']:
+# # #     if (block['BlockType'] == 'CELL'):
+# # #         print(block)
+# # print('\n\nMerged_cell')
+# # for block in test_response['Blocks']:
+# #     if (block['BlockType'] == 'MERGED_CELL'):
+# #         print(block)
 
-"""
