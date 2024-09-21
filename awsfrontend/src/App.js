@@ -1,11 +1,17 @@
 import React from 'react';
-import LanguageSelection from './LanguageSelection';
+import HomePage from './HomePage';
+import ResultsPage from './ResultsPage';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+ 
 
 function App() {
   return (
-    <div>
-      <LanguageSelection />
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<HomePage />} />  {/* HomePage is the default route */}
+        <Route path="/results" element={<ResultsPage />}  />  {/* Route to ResultsPage */}
+      </Routes>
+    </Router>
   );
 }
 
