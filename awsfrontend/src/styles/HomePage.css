@@ -69,3 +69,26 @@
     font-weight: bold;
   }
   
+  button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: inline-block;
+    padding: 0;
+  }
+  
+  button:focus {
+    outline: none;
+  }
+
+  .question button {
+    font-size: 1em; /* Set the desired size of the question mark */
+    color: black;   /* Set the color of the question mark */
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .question button p {
+    margin: 0; /* Remove any margin from the <p> inside the button */
+  }

@@ -1,0 +1,54 @@
+/* General container */
+.container {
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    height: 100vh;
+    position: relative;
+    background-color: white;
+  }
+  
+  /* PDF section */
+  
+  
+  .pdf-link {
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: bold;
+  }
+  
+  .pdf-link:hover {
+    text-decoration: underline;
+  }
+  
+  /* PDF viewer styles */
+  .pdf-viewer {
+    border: none;
+  }
+  
+  /* Camera section */
+  .camera-section {
+    position: absolute;
+    bottom: 15%;
+    left: 50%;
+    transform: translate(-50%, 0);
+  }
+  
+  .camera-icon {
+    width: 80px;
+    height: 80px;
+  }
+  
+  /* Microphone section */
+  .microphone-section {
+    position: absolute;
+    top: 30%;
+    right: 20%;
+  }
+  
+  .microphone-icon {
+    width: 100px;
+    height: 100px;
+  }
+  

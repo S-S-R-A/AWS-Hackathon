@@ -1,10 +1,10 @@
 import React from 'react';
-import LanguageSelection from './LanguageSelection';
+import ResultsPage from './ResultsPage'; // Capitalized import
 
 function App() {
   return (
     <div>
-      <LanguageSelection />
+      <ResultsPage /> {/* Capitalized component name */}
     </div>
   );
 }
