@@ -1,15 +1,18 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import useSound from 'use-sound';
 import './styles/ResultsPage.css';
 
 const ResultsPage = () => {
+  
   const [showOptions, setShowOptions] = useState(false);
   const [mediaStream, setMediaStream] = useState(null);
   const [photoURL, setPhotoURL] = useState(null);
   const videoRef = useRef(null);
   const { state } = useLocation(); // Get state from navigation
+  const { t, i18n } = useTranslation();
   const { file, fileType } = state || {};
   const [play] = useSound('/audio.mp3');
   const navigate = useNavigate();
@@ -63,6 +66,12 @@ const ResultsPage = () => {
     };
   }, [stopMediaStream]);
 
+  useEffect(() => {
+    // Retrieve the passed language or fallback to localStorage
+    const language = state?.lang || localStorage.getItem('selectedLanguage') || 'en';
+    i18n.changeLanguage(language);
+  }, [i18n, state]);
+
   return (
     <div className="container">
       <div className="pdf-section">
@@ -93,23 +102,23 @@ const ResultsPage = () => {
 
       {showOptions && (
         <div className="camera-options">
-          <h3>Select an option</h3>
+          <h3>{t('Select an option')}</h3>
           <button onClick={() => document.getElementById('file-upload').click()}>
-            Upload a file
+          {t('Upload a file')}
           </button>
           <input
             id="file-upload"
             type="file"
-            accept="image/*application/pdf"
+            accept="image/*,application/pdf"
             style={{ display: 'none' }}
             onChange={handleUploadFile}
           />
-          <button onClick={handleTakePhoto}>Take a photo</button>
+          <button onClick={handleTakePhoto}>{t('Take a photo')}</button>
 
           {mediaStream && (
             <div className="camera-preview">
               <video ref={videoRef} autoPlay playsInline></video>
-              <button onClick={capturePhoto}>Capture Photo</button>
+              <button onClick={capturePhoto}>{t('Capture Photo')}</button>
             </div>
           )}
         </div>
@@ -117,7 +126,7 @@ const ResultsPage = () => {
 
       {photoURL && (
         <div className="photo-preview">
-          <h3>Captured Photo</h3>
+          <h3>{t('Captured Photo')}</h3>
           <img src={photoURL} alt="Captured" />
         </div>
       )}
