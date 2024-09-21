@@ -10,6 +10,10 @@
   
   /* PDF section */
   
+  .pdf-section {
+    position: absolute;
+    top: 5%;
+  }
   
   .pdf-link {
     color: white;
@@ -30,8 +34,8 @@
   /* Camera section */
   .camera-section {
     position: absolute;
-    bottom: 15%;
-    left: 50%;
+    top: 35%;
+    left: 15%;
     transform: translate(-50%, 0);
   }
   
@@ -43,10 +47,21 @@
   /* Microphone section */
   .microphone-section {
     position: absolute;
-    top: 30%;
-    right: 20%;
+    top: 5%;
+    right: 7%;
   }
   
+  .replay-section {
+    position: absolute;
+    bottom: 5%;
+    right: 7%;
+  }
+
+  .replay-icon {
+    width: 300px;
+    height: 300px;
+  }
+
   .microphone-icon {
     width: 300px;
     height: 300px;

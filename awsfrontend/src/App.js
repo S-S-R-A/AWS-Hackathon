@@ -9,7 +9,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<HomePage />} />  {/* HomePage is the default route */}
-        <Route path="/results" element={<ResultsPage />} />  {/* Route to ResultsPage */}
+        <Route path="/results" element={<ResultsPage />}  />  {/* Route to ResultsPage */}
       </Routes>
     </Router>
   );

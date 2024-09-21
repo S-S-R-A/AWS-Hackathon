@@ -1,23 +1,77 @@
-import React from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './styles/HomePage.css';
 
-
 const HomePage = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [showOptions, setShowOptions] = useState(false);
+  const [mediaStream, setMediaStream] = useState(null);
+  const [photoURL, setPhotoURL] = useState(null);
+  const videoRef = useRef(null);
   const navigate = useNavigate(); // Hook for navigation
 
-  const handleCameraClick = () => {
-    navigate('/results'); // Redirect to the results page
+  const togglePopup = () => {
+    setIsOpen(!isOpen);
   };
+
+  const handleCameraClick = () => {
+    setShowOptions(true); // Show options to upload or take a photo
+  };
+
+  const handleUploadFile = (event) => {
+    const file = event.target.files[0];
+    // You can store the file in state or local storage if needed
+    console.log('Uploaded file:', file);
+
+    // Navigate to results page after file upload
+    navigate('/results', { state: { file } });
+  };
+
+  const handleTakePhoto = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      setMediaStream(stream);
+    } catch (error) {
+      console.error('Error accessing camera:', error);
+    }
+  };
+
+  const capturePhoto = () => {
+    const video = videoRef.current;
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const context = canvas.getContext('2d');
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const imageUrl = canvas.toDataURL('image/png');
+    setPhotoURL(imageUrl);
+
+    // Navigate to results page after capturing photo
+    navigate('/results', { state: { photoURL: imageUrl } });
+    
+    // Stop the camera stream
+    stopMediaStream();
+  };
+
+  const stopMediaStream = useCallback(() => {
+    if (mediaStream) {
+      mediaStream.getTracks().forEach((track) => track.stop());
+      setMediaStream(null);
+    }
+  }, [mediaStream]);
+
+  useEffect(() => {
+    // Cleanup media stream on component unmount
+    return () => {
+      stopMediaStream();
+    };
+  }, [stopMediaStream]);
 
   return (
     <div className="container">
       <div className="flags">
         <button className="flag-item">
-          <img
-            src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg"
-            alt="English"
-          />
+          <img src="/usFlag.png" alt="English" />
           <p>English</p>
         </button>
         <button className="flag-item">
@@ -35,26 +89,65 @@ const HomePage = () => {
           <p>中文</p>
         </button>
       </div>
-      
-      
+
       <div className="docuvoice">
         <button onClick={handleCameraClick}>
-        <img 
-          src="/cameraIcon.png" 
-          alt="DocuVoice Camera"/>
+          <img src="/cameraIcon.png" alt="DocuVoice Camera" />
         </button>
       </div>
 
-      <div className = "docuvoice">
+      <div className="docuvoice">
         <p>DocuVoice</p>
       </div>
 
-
       <div className="question">
-        <button>
-            <p>?</p>
+        <button onClick={togglePopup}>
+          <p>?</p>
         </button>
+
+        {isOpen && (
+          <div className="popup-overlay">
+            <div className="popup">
+              <h2>This is a Popup!</h2>
+              <p>Click the button below to close the popup.</p>
+              <button onClick={togglePopup} className="close-btn">
+                Close
+              </button>
+            </div>
+          </div>
+        )}
       </div>
+
+      {showOptions && (
+        <div className="camera-options">
+          <h3>Select an option</h3>
+          <button onClick={() => document.getElementById('file-upload').click()}>
+            Upload a file
+          </button>
+          <input
+            id="file-upload"
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={handleUploadFile}
+          />
+          <button onClick={handleTakePhoto}>Take a photo</button>
+
+          {mediaStream && (
+            <div className="camera-preview">
+              <video ref={videoRef} autoPlay playsInline srcObject={mediaStream}></video>
+              <button onClick={capturePhoto}>Capture Photo</button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {photoURL && (
+        <div className="photo-preview">
+          <h3>Captured Photo</h3>
+          <img src={photoURL} alt="Captured" />
+        </div>
+      )}
     </div>
   );
 };

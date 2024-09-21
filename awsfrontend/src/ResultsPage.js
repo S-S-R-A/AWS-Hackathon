@@ -1,9 +1,14 @@
 import React from 'react';
+import useSound from 'use-sound';
 import './styles/ResultsPage.css'; // Import your custom styles
+
 
 const ResultsPage = () => {
   const pdfUrl = 'https://clicklibrary.wordpress.com/wp-content/uploads/2018/01/diary-of-a-wimpy-kid-book-1-kinney-jeff.pdf'; // Hardcoded PDF URL
 
+  const [play] = useSound('/audio.mp3');
+ 
+    
   return (
     <div className="container">
       {/* Container for the embedded PDF viewer */}
@@ -36,7 +41,20 @@ const ResultsPage = () => {
     />
   </button>
 </div>
-    </div>
+
+
+{/* Replay button */}
+<div className= "replay-section">
+  <button className="replay-button" onClick={play}>
+    <img 
+      src="/replayButton.png"
+      alt="Replay Button"
+      className="microphone-icon"
+    />
+  </button>
+</div>
+
+</div>
   );
 };
 

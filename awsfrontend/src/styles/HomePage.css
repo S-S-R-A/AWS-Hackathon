@@ -1,94 +1,162 @@
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-  
-  body {
-    font-family: Arial, sans-serif;
-    background-color: #ccc;
-  }
-  
-  .container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-    position: relative;
-  }
-  
-  .flags {
-    display: flex;
-    justify-content: space-between;
-    width: 400px;
-    margin-bottom: 50px;
-  }
-  
-  .flag-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .flag-item img {
-    width: 100px;
-    height: 60px;
-    border: 1px solid #000;
-  }
-  
-  .flag-item p {
-    margin-top: 10px;
-    font-size: 18px;
-    font-weight: bold;
-  }
-  
-  .docuvoice {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-top: 30px;
-  }
-  
-  .docuvoice img {
-    width: 100px;
-    height: auto;
-  }
-  
-  .docuvoice p {
-    margin-top: 10px;
-    font-size: 24px;
-    font-weight: bold;
-  }
-  
-  .question {
-    position: absolute;
-    bottom: 20px;
-    right: 30px;
-    font-size: 50px;
-    font-weight: bold;
-  }
-  
-  button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    display: inline-block;
-    padding: 0;
-  }
-  
-  button:focus {
-    outline: none;
-  }
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-  .question button {
-    font-size: 1em; /* Set the desired size of the question mark */
-    color: black;   /* Set the color of the question mark */
-    background: none;
-    border: none;
-    cursor: pointer;
-  }
-  
-  .question button p {
-    margin: 0; /* Remove any margin from the <p> inside the button */
-  }
+body {
+  font-family: Arial, sans-serif;
+  background-color: #ccc;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  position: relative;
+}
+
+.flags {
+  display: flex;
+  justify-content: space-between;
+  width: 1000px;
+  margin: 50px 0;
+}
+
+.flag-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.flag-item img {
+  border: 1px solid #000;
+  width: 200px;
+  height: 120px;
+}
+
+.flag-item p {
+  margin-top: 10px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.docuvoice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 30px;
+}
+
+.docuvoice img {
+  width: 300px;
+  height: auto;
+}
+
+.docuvoice p {
+  font-size: 100px;
+  font-weight: bold;
+}
+
+.question {
+  position: absolute;
+  bottom: 20px;
+  right: 30px;
+  font-size: 50px;
+  font-weight: bold;
+}
+
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: inline-block;
+  padding: 0;
+}
+
+button:focus {
+  outline: none;
+}
+
+.question button {
+  font-size: 1em; /* Set the desired size of the question mark */
+  color: black;   /* Set the color of the question mark */
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.question button p {
+  margin: 0; /* Remove any margin from the <p> inside the button */
+}
+
+/* Camera Options Modal */
+.camera-options {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.camera-options button {
+  display: block;
+  margin: 10px auto;
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.camera-options button:hover {
+  background-color: #0056b3;
+}
+
+/* Popup Overlay */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.popup {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+/* Camera Preview */
+.camera-preview {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.camera-preview video {
+  width: 100%;
+  max-width: 400px;
+  border: 1px solid #ccc;
+}
+
+/* Photo Preview */
+.photo-preview {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.photo-preview img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
