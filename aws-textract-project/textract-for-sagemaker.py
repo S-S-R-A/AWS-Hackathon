@@ -1,41 +1,32 @@
+# File: ./aws-textract-project/textract-for-sagemaker.py
+
 from flask import Flask, request, jsonify
 import boto3
 import json
 import os
+import tempfile  # For cross-platform temporary directory
+from werkzeug.utils import secure_filename
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
-# Generate a hash map that can be used to retrieve any block given an id
-def genBlockMap(blocks):
-    key_map = {}
-    value_map = {}
-    block_map = {}
+# AWS Configuration
+S3_BUCKET = 'w2-datasets'
+S3_REGION = 'us-east-1'  # Your AWS region
 
-    # Create a map of blocks using block IDs
-    for block in blocks:
-        block_id = block['Id']
-        block_map[block_id] = block
-        
-        # Store KEY and VALUE blocks in separate dictionaries
-        if block['BlockType'] == 'KEY_VALUE_SET':
-            if 'KEY' in block['EntityTypes']:
-                key_map[block_id] = block
-            elif 'VALUE' in block['EntityTypes']:
-                value_map[block_id] = block
-    return key_map, value_map, block_map
-    
+# AWS Clients
+s3_client = boto3.client('s3', region_name=S3_REGION)
+textract_client = boto3.client('textract', region_name=S3_REGION)
 
-def get_text_for_block(block, block_map):
-    text = ""
-    if 'Relationships' in block:
-        for relationship in block['Relationships']:
-            if relationship['Type'] == 'CHILD':
-                for child_id in relationship['Ids']:
-                    child_block = block_map[child_id]
-                    if child_block['BlockType'] == 'WORD':
-                        text += child_block['Text'] + " "
-    return text.strip()
+# Allowed file extensions
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'pdf'}
 
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# Generate output JSON for ML
 def generateMLJSON(test_response, document_name):
     # Loop through the blocks in the test_response
     output_data = []
@@ -59,22 +50,47 @@ def generateMLJSON(test_response, document_name):
     }
     return final_output
 
-def list_all_objects(s3_client, bucket_name, prefix=''):
-    paginator = s3_client.get_paginator('list_objects_v2')
-    page_iterator = paginator.paginate(Bucket=bucket_name, Prefix=prefix)
-    all_objects = []
-    for page in page_iterator:
-        if 'Contents' in page:
-            all_objects.extend(page['Contents'])
-    return all_objects
+@app.route('/upload-and-process', methods=['POST'])
+def upload_and_process():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part in the request'}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No file selected for uploading'}), 400
+
+    if file and allowed_file(file.filename):
+        # Secure the filename
+        filename = secure_filename(file.filename)
+
+        # Use a temporary directory that's OS-independent
+        temp_dir = tempfile.gettempdir()
+        local_filepath = os.path.join(temp_dir, filename)
+        file.save(local_filepath)
+
+        # Upload the file to S3 input path
+        s3_input_key = f'input/raw_file/{filename}'
+        s3_client.upload_file(local_filepath, S3_BUCKET, s3_input_key)
+
+        # Remove the local file
+        os.remove(local_filepath)
+
+        # Process the file from S3
+        output_prefix = 'output/json'
+        try:
+            process_file(s3_input_key, S3_BUCKET, textract_client, s3_client, output_prefix)
+        except Exception as e:
+            app.logger.error(f"Error processing file: {str(e)}")
+            return jsonify({'error': f'Error processing file: {str(e)}'}), 500
+
+        # Return success response with file URL
+        file_url = f'https://{S3_BUCKET}.s3.{S3_REGION}.amazonaws.com/{s3_input_key}'
+        return jsonify({'message': 'File uploaded and processed successfully', 'file_url': file_url}), 200
+    else:
+        return jsonify({'error': 'Allowed file types are png, jpg, jpeg, pdf'}), 400
 
 def process_file(document_name, s3_bucket_name, textract_client, s3_client, output_prefix):
-    # Skip if the object is a directory (ends with '/')
-    if document_name.endswith('/'):
-        print(f"Skipping file: {document_name}")
-        return
-
-    # Skip if the object is not an image or PDF (adjust extensions as needed)
+    # Skip if the object is not an image or PDF
     if not document_name.lower().endswith(('.jpg', '.jpeg', '.png', '.pdf')):
         print(f"Skipping file: {document_name}")
         return
@@ -83,10 +99,7 @@ def process_file(document_name, s3_bucket_name, textract_client, s3_client, outp
 
     # Generate the base name and determine the output path
     base_name = os.path.splitext(os.path.basename(document_name))[0]
-    s3_object_name = f'{output_prefix}/ML{base_name}.json'
-
-    # Generate the local output filepath
-    output_filepath = f'aws-textract-project/out/ML{base_name}.json'
+    s3_output_key = f'{output_prefix}/ML_{base_name}.json'
 
     # Call Textract to analyze the document
     test_response = textract_client.analyze_document(
@@ -97,88 +110,21 @@ def process_file(document_name, s3_bucket_name, textract_client, s3_client, outp
     # Generate the output data
     output_data = generateMLJSON(test_response, document_name)
 
-    # Ensure the output directory exists
-    os.makedirs(os.path.dirname(output_filepath), exist_ok=True)
-
-    # Write the output data to a JSON file
+    # Save output data to a JSON file in the temporary directory
+    temp_dir = tempfile.gettempdir()
+    output_filename = f'ML_{base_name}.json'
+    output_filepath = os.path.join(temp_dir, output_filename)
     with open(output_filepath, 'w') as file:
         json.dump(output_data, file, indent=4)
 
-    # Upload the JSON file back to S3
-    s3_client.upload_file(output_filepath, s3_bucket_name, s3_object_name)
+    # Upload the JSON file to S3 output path
+    s3_client.upload_file(output_filepath, s3_bucket_name, s3_output_key)
 
-    # Delete the local JSON file to save space
+    # Delete the local JSON file
     try:
         os.remove(output_filepath)
     except OSError as e:
         print(f"Error deleting file {output_filepath}: {e}")
 
-def process_directory(s3_bucket_name, textract_client, s3_client, max_files=100):
-    # List all directories in the datasets folder
-    # datasets = [
-    #     'datasets/1040_1', 'datasets/1040_2', 'datasets/2106_1', 'datasets/2106_2', 
-    #     'datasets/2441', 'datasets/4562_1', 'datasets/4562_2', 'datasets/6251',
-    #     'datasets/sch_a', 'datasets/sch_b', 'datasets/sch_c_1', 'datasets/sch_c_2',
-    #     'datasets/sch_d_1', 'datasets/sch_d_2', 'datasets/sch_e_1', 'datasets/sch_e_2',
-    #     'datasets/sch_f_1', 'datasets/sch_f_2', 'datasets/sch_se_1', 'datasets/sch_se_2'
-    # ]
-
-
-    datasets = ['datasets/sch_d_2', 'datasets/sch_e_1', 'datasets/sch_e_2',
-        'datasets/sch_f_1', 'datasets/sch_f_2', 'datasets/sch_se_1', 'datasets/sch_se_2'
-    ]
-    for dataset in datasets:
-        original_folder = f'{dataset}/original/'
-        ocr_output_folder = f'{dataset}/ocr_output/'
-
-        print(f"Processing documents in {original_folder}...")
-
-        # List all objects in the original folder
-        all_objects = list_all_objects(s3_client, s3_bucket_name, prefix=original_folder)
-
-        # Process only up to the maximum number of files (100)
-        processed_count = 0
-        for obj in all_objects:
-            if processed_count >= max_files:
-                print(f"Reached limit of {max_files} files for {original_folder}.")
-                break
-            document_name = obj['Key']
-            process_file(document_name, s3_bucket_name, textract_client, s3_client, ocr_output_folder)
-            processed_count += 1
-
-@app.route('/process-file', methods=['POST'])
-def process_file_endpoint():
-    data = request.json
-    document_name = data.get('document_name')
-    s3_bucket_name = 'w2-datasets'
-
-    textract = boto3.client('textract', region_name='us-east-1')
-    s3 = boto3.client('s3')
-
-    output_prefix = 'output/json'
-    
-    try:
-        process_file(document_name, s3_bucket_name, textract, s3, output_prefix)
-        return jsonify({"message": "File processed successfully"}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
 if __name__ == '__main__':
-    app.run(debug=True)
-
-
-"""
-const processFile = async () => {
-    const response = await fetch('/process-file', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            document_name: 'input/raw_file/some-file.pdf'
-        })
-    });
-    const data = await response.json();
-    console.log(data.message);
-}
-"""
+    app.run(debug=True, port=8080)
