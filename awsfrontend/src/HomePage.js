@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import ReactWebcam from 'react-webcam';
 import './i18n';
 import './styles/HomePage.css';
 
@@ -9,15 +10,15 @@ const HomePage = () => {
   
   const [isOpen, setIsOpen] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
-  const [mediaStream, setMediaStream] = useState(null);
   const [photoURL, setPhotoURL] = useState(null);
   const [videoURL, setVideoURL] = useState('/instructions_en.mp4'); // Initialize with default video URL
-  const videoRef = useRef(null);
+  const webcamRef = useRef(null); // Webcam reference
   const navigate = useNavigate(); // Hook for navigation
 
   const togglePopup = () => {
     setIsOpen(!isOpen);
   };
+  
   useEffect(() => {
     const storedLanguage = localStorage.getItem('selectedLanguage') || 'en'; // Fallback to English if no language is selected
     i18n.changeLanguage(storedLanguage);
@@ -37,7 +38,6 @@ const HomePage = () => {
     i18n.changeLanguage(lang);
   };
 
-  
   const handleCameraClick = () => {
     setShowOptions(true); // Show options to upload or take a photo
   };
@@ -53,46 +53,15 @@ const HomePage = () => {
         lang: i18n.language // Pass the current language along
       }
     });
-    
-  };
-
-  const handleTakePhoto = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      setMediaStream(stream);
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream; // Set the video source to the stream
-      }
-    } catch (error) {
-      console.error('Error accessing camera:', error);
-    }
   };
 
   const capturePhoto = () => {
-    const video = videoRef.current;
-    const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    const context = canvas.getContext('2d');
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const imageUrl = canvas.toDataURL('image/png');
-    setPhotoURL(imageUrl);
-    navigate('/results', { state: { file: imageUrl, fileType: 'image/png' } });
-    stopMediaStream();
+    const imageSrc = webcamRef.current.getScreenshot(); // Get the screenshot from the webcam
+    setPhotoURL(imageSrc);
+    navigate('/results', { state: { file: imageSrc, fileType: 'image/png' } });
   };
 
-  const stopMediaStream = useCallback(() => {
-    if (mediaStream) {
-      mediaStream.getTracks().forEach((track) => track.stop());
-      setMediaStream(null);
-    }
-  }, [mediaStream]);
-
-  useEffect(() => {
-    return () => {
-      stopMediaStream(); // Cleanup the media stream on component unmount
-    };
-  }, [stopMediaStream]);
+  
 
   return (
     <div className="container">
@@ -157,14 +126,12 @@ const HomePage = () => {
             style={{ display: 'none' }}
             onChange={handleUploadFile}
           />
-          <button onClick={handleTakePhoto}>{t('Take a photo')}</button>
+          <button>{t('Take a photo')}</button>
 
-          {mediaStream && (
-            <div className="camera-preview">
-              <video ref={videoRef} autoPlay playsInline></video>
-              <button onClick={capturePhoto}>{t('Capture Photo')}</button>
-            </div>
-          )}
+          <div className="camera-preview">
+          <ReactWebcam ref={webcamRef} screenshotFormat="image/png" style={{ width: '600px', height: 'auto' }} />
+            <button onClick={capturePhoto}>{t('Capture Photo')}</button>
+          </div>
         </div>
       )}
 
