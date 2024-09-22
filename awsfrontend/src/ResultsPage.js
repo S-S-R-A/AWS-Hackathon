@@ -5,6 +5,8 @@ import useSound from 'use-sound';
 import ReactWebcam from 'react-webcam';
 import './styles/ResultsPage.css';
 import lamejs from 'lamejs';
+import AWS from 'aws-sdk';
+import TranscribeService from 'aws-sdk/clients/transcribeservice';
 
 const ResultsPage = () => {
   const { t, i18n } = useTranslation();
@@ -17,6 +19,19 @@ const ResultsPage = () => {
   const [photoURL, setPhotoURL] = useState(null);
   const webcamRef = useRef(null);  // React Webcam ref
 
+  AWS.config.update({
+    region: 'us-east-1', // e.g., 'us-east-1'
+    accessKeyId: 'AKIA2NK3YPN7DPYERYII',
+    secretAccessKey: 'nH23HN6Bg+I7wBLpCxqEt8N0HRkHrybzmt4/ZX3b'
+  });
+  
+  const s3 = new AWS.S3();
+  const bucketName = 'polly-wav';
+  
+  //const transcribe = new AWS.TranscribeService();
+
+  
+
   // Audio Recording Hooks
   const [isRecording, setIsRecording] = useState(false); // Whether it's recording
   //const [audioURL, setAudioURL] = useState(''); // URL for playback of recording
@@ -24,10 +39,26 @@ const ResultsPage = () => {
   const [audioChunks, setAudioChunks] = useState([]); // To store audio data chunks
   const [buttonImage, setButtonImage] = useState("/microphoneIcon.png");
 
+  
+  const selectedlanguage = state?.lang || localStorage.getItem('selectedLanguage') || 'en';
+  let language;
+
+  if(selectedlanguage === 'es')
+  {
+      language = 'es-ES'
+  }
+  else if(selectedlanguage === 'zh')
+  {
+    language = 'zh-CN'
+  }
+  else{
+    language = 'en-US'
+  }
+
   useEffect(() => {
-    const language = state?.lang || localStorage.getItem('selectedLanguage') || 'en';
-    i18n.changeLanguage(language);
-  }, [i18n, state]);
+    i18n.changeLanguage(selectedlanguage);
+}, [i18n, selectedlanguage, state]); // Include selectedLanguage in the dependency array
+
 
   const handleCameraClick = () => {
     setShowOptions(true); // Show options to upload or take a photo
@@ -46,63 +77,103 @@ const ResultsPage = () => {
   };
 
   // Audio Recording Methods (Same as before)
+  // Start recording 
   const startRecording = async () => {
     setIsRecording(true);
-    setAudioChunks([]); 
+    setAudioChunks([]);
     setButtonImage("redMic.png");
-
+  
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaRecorderRef.current = new MediaRecorder(stream);
       const audioChunks = [];
-
+  
       mediaRecorderRef.current.ondataavailable = (event) => {
         console.log("Data available size:", event.data.size); // Log data size to see if it's capturing anything
         if (event.data.size > 0) {
           audioChunks.push(event.data);
         }
       };
-
+  
       mediaRecorderRef.current.onstop = async () => {
         console.log("Recording stopped. Processing WAV file...");
-
+  
         // Create a blob from the recorded audio chunks
         const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-
-        // Create a URL for the blob
-        const wavUrl = URL.createObjectURL(audioBlob);
-
-        // Create a link to download the WAV file
-        const link = document.createElement('a');
-        link.href = wavUrl;
-        link.download = 'recording.wav';
-
-        // Simulate a click to trigger the download
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        console.log("WAV file saved.");
+  
+        // Upload the WAV file to S3
+        const s3Url = await uploadToS3(audioBlob);
+        console.log("WAV file uploaded to S3:", s3Url);
+  
+        // Start transcription after upload is complete
+        startTranscription(s3Url, language);
       };
-
+  
       mediaRecorderRef.current.start();
       console.log("Recording started...");
     } catch (error) {
       console.error('Error accessing microphone:', error);
     }
   };
-
-  const stopRecording = () => {
-    setIsRecording(false);
-    if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.stop();
-      const stream = mediaRecorderRef.current.stream;
-      stream.getTracks().forEach(track => track.stop());
-      setButtonImage("/microphoneIcon.png");
-      console.log('Recording stopped.');
+  
+  // Upload function to send the WAV file to S3
+  const uploadToS3 = async (audioBlob) => {
+    const fileName = `audio_${Date.now()}.wav`; // Create a unique file name
+    const params = {
+      Bucket: bucketName,
+      Key: fileName,
+      Body: audioBlob,
+      ContentType: 'audio/wav'
+    };
+  
+    try {
+      const uploadResult = await s3.upload(params).promise();
+      console.log('File uploaded successfully:', uploadResult.Location);
+      return uploadResult.Location;  // Return the URL of the uploaded file
+    } catch (error) {
+      console.error('Error uploading file to S3:', error);
+      throw error;
     }
   };
+  
+  // Stops the mic from recording
+  // Stops the mic from recording
+const stopRecording = () => {
+  setIsRecording(false);
+  if (mediaRecorderRef.current) {
+    mediaRecorderRef.current.stop();
+    const stream = mediaRecorderRef.current.stream;
+    stream.getTracks().forEach(track => track.stop());
+    setButtonImage("/microphoneIcon.png");
+    console.log('Recording stopped.');
+  }
+};
+  
+  const transcribe = new AWS.TranscribeService();
+  
+  
+  const startTranscription = async (fileUrl, language) => {
+    console.log("language: " + language)
+    const params = {
+      TranscriptionJobName: `TranscriptionJob-${Date.now()}`, // Unique job name
+      LanguageCode: language, // Set the language
+      Media: {
+        MediaFileUri: fileUrl, // S3 URI for the audio file
+      },
+      MediaFormat: 'wav', // Format of your audio file
+      OutputBucketName: bucketName, // Optional: where to store the transcription output
+    };
+  
+    try {
+      const response = await transcribe.startTranscriptionJob(params).promise();
+      console.log('Transcription Job Started:', response);
+    } catch (error) {
+      console.error('Error starting transcription job:', error);
+    }
+  };
+  
 
+  
   return (
     <div className="container">
       <div className="pdf-section">
@@ -143,11 +214,11 @@ const ResultsPage = () => {
         </div>
       )}
 
-      <div className="microphone-section">
-        <button className="microphone-button" onClick={isRecording ? stopRecording : startRecording}>
-          <img src={buttonImage} alt="Microphone Icon" className="microphone-icon" />
-        </button>
-      </div>
+        <div className="microphone-section">
+            <button className="microphone-button" onClick={isRecording ? stopRecording : startRecording}>
+                <img src={buttonImage} alt="Microphone Icon" className="microphone-icon" />
+            </button>
+        </div>
 
       <div className="replay-section">
         <button className="replay-button" onClick={play}>
