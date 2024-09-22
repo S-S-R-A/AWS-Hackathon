@@ -2,7 +2,7 @@
 import boto3
 import json
 import os
-from pygame import mixer
+# from pygame import mixer
 
 
 
@@ -33,20 +33,20 @@ def text_to_speech(text, output_filename, language):
     with open(output_filename, 'wb') as file:
         file.write(response['AudioStream'].read())
 
-    mixer.init()
-    mixer.music.load(output_filename)
-    mixer.music.play()
+    # mixer.init()
+    # mixer.music.load(output_filename)
+    # mixer.music.play()
 
-    while mixer.music.get_busy():
-        continue
+    # while mixer.music.get_busy():
+    #     continue
 
-def narrate():
+def get_polly_mp3_narration(text):
     
-    language = data.get('selectedLanguage', 'en') 
+    language = "" # data.get('selectedLanguage', 'en') 
 
-    file_path = 'example idk where its at'
-    with open(file_path, 'r') as file:
-        text = file.read()
+    # file_path = 'example idk where its at'
+    # with open(file_path, 'r') as file:
+    #     text = file.read()
 
-    output_audio_file = 'output.mp3'  
+    output_audio_file = 'output.mp3'
     text_to_speech(text, output_audio_file, language) 
