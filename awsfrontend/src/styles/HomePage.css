@@ -154,7 +154,7 @@ button:focus {
 .camera-preview video {
   width: 100%;
   max-width: 400px;
-  border: 1px solid #ccc;
+  border: 1px solid #070000;
 }
 
 /* Photo Preview */
@@ -166,7 +166,7 @@ button:focus {
 .photo-preview img {
   max-width: 100%;
   height: auto;
-  border: 1px solid #ccc;
+  border: 1px solid #100a0a;
   border-radius: 5px;
 }
 

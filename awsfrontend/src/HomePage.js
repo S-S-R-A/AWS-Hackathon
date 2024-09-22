@@ -6,13 +6,14 @@ import './styles/HomePage.css';
 
 const HomePage = () => {
   const { t, i18n } = useTranslation();
-  
+ 
   const [isOpen, setIsOpen] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
   const [mediaStream, setMediaStream] = useState(null);
   const [photoURL, setPhotoURL] = useState(null);
-  const [videoURL, setVideoURL] = useState('/instructions_en.mp4'); // Initialize with default video URL
   const videoRef = useRef(null);
+  const [videoURL, setVideoURL] = useState('/instructions_en.mp4'); // Initialize with default video URL
+
   const navigate = useNavigate(); // Hook for navigation
 
   const togglePopup = () => {
@@ -62,6 +63,7 @@ const HomePage = () => {
       setMediaStream(stream);
       if (videoRef.current) {
         videoRef.current.srcObject = stream; // Set the video source to the stream
+        videoRef.current.play();
       }
     } catch (error) {
       console.error('Error accessing camera:', error);
