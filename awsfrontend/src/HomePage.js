@@ -38,7 +38,6 @@ const HomePage = () => {
   };
 
   
-
   const handleCameraClick = () => {
     setShowOptions(true); // Show options to upload or take a photo
   };
