@@ -36,6 +36,7 @@ const HomePage = () => {
     localStorage.setItem('selectedLanguage', lang);
     i18n.changeLanguage(lang);
   };
+
   
 
   const handleCameraClick = () => {
