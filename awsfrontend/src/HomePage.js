@@ -49,7 +49,7 @@ const HomePage = () => {
     navigate('/results', {
       state: { 
         file: fileUrl, 
-        fileType: 'image/png',
+        fileType: 'application/pdf',
         lang: i18n.language // Pass the current language along
       }
     });
