@@ -5,7 +5,10 @@
     "Upload a file": "Subir un archivo",
     "Take a photo": "Tomar una foto",
     "Capture Photo": "Capturar foto",
-    "Captured Photo": "Captured Photo",
-    "Close": "Cerrar"
+    "Captured Photo": "Foto capturada",
+    "Predicted Document Type": "Tipo de Documento Previsto", 
+    "non" : "no",
+    "Close": "Cerrar",
+    "Unknown": "Desconocida"
   }
   

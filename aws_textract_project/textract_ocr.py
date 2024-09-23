@@ -134,10 +134,27 @@ def process_file(document_name, s3_bucket_name, textract_client, s3_client):
     output_filepath = f'aws-textract-project/out/ML{base_name}.json'
 
     # Call Textract to analyze the document
-    test_response = textract_client.analyze_document(
+    textract_response = textract_client.analyze_document(
         Document={'S3Object': {'Bucket': s3_bucket_name, 'Name': document_name}},
-        FeatureTypes=['FORMS', 'TABLES']
+        FeatureTypes=['FORMS', 'TABLES'],
     )
+    # Make lines for entities
+    lines = ''
+    print(extract_key_value_pairs(textract_response))
+    
+    # response = comprehend.detect_entities(
+    #     Text='string',
+    #     LanguageCode='en'|'es'|'fr'|'de'|'it'|'pt'|'ar'|'hi'|'ja'|'ko'|'zh'|'zh-TW',
+    #     EndpointArn='string',
+    #     Bytes=b'bytes',
+    #     DocumentReaderConfig={
+    #         'DocumentReadAction': 'TEXTRACT_DETECT_DOCUMENT_TEXT'|'TEXTRACT_ANALYZE_DOCUMENT',
+    #         'DocumentReadMode': 'SERVICE_DEFAULT'|'FORCE_DOCUMENT_READ_ACTION',
+    #         'FeatureTypes': [
+    #             'TABLES'|'FORMS',
+    #         ]
+    #     }
+    # )
 
     # Abhi does cell stuff here
     # cell_keys, cell_values, cell_blocks = genBlockMap(test_response['Blocks'])
@@ -163,53 +180,15 @@ def process_file(document_name, s3_bucket_name, textract_client, s3_client):
     #         cells_text.append(cell_arr)
     # print(cells_text)    
 
-    # Now Abhi does query stuff for W-2
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    # # Now Abhi does query stuff for W-2
+    # keys_map, values_map, blocks_map = genBlockMap(test_response['Blocks'])
+    # for block in test_response['Blocks']:
+    #     if (block['BlockType'] == 'QUERY' or block['BlockType'] == 'QUERY'):
+    #         # print(block)
+    #         for relat in block.get('Relationships', []):
+    #             for Id in relat['Ids']:
+    #                 print(block['Query']['Text'])
+    #                 print(blocks_map[Id]['Text'])
 
 
     # # Generate the output data
@@ -278,4 +257,3 @@ if __name__ == "__main__":
 # # for block in test_response['Blocks']:
 # #     if (block['BlockType'] == 'MERGED_CELL'):
 # #         print(block)
-
