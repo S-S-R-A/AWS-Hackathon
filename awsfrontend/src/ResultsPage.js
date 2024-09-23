@@ -19,8 +19,9 @@ const ResultsPage = () => {
   const [photoURL, setPhotoURL] = useState(null);
   const webcamRef = useRef(null);  // React Webcam ref
 
-  
-  
+  //key goes here
+ 
+
   const s3 = new AWS.S3();
   const bucketName = 'polly-wav';
   
