@@ -67,7 +67,7 @@ for dataset_name in dataset_names:
                 texts.append(text)
                 
                 # Assign labels
-                if dataset_name == 'w2':
+                if dataset_name.lower() == 'w2':
                     labels.append('w2')
                 else:
                     labels.append('non-w2')
@@ -75,17 +75,22 @@ for dataset_name in dataset_names:
 
 
 
+
 print("Number of documents:", len(texts))
 # Create label encoding
-label_set = sorted(set(labels))
-label_to_idx = {label: idx for idx, label in enumerate(label_set)}
-idx_to_label = {idx: label for label, idx in label_to_idx.items()}
+# Create explicit label encoding
+label_to_idx = {'w2': 0, 'non-w2': 1}
+idx_to_label = {0: 'w2', 1: 'non-w2'}
+
+# Convert labels to indices
+label_indices = [label_to_idx[label] for label in labels]
 
 print("Label mapping:", label_to_idx)
 
 # Save label mapping for later use
 with open('label_mapping.json', 'w') as f:
     json.dump(idx_to_label, f)
+
 
 print("Converting labels to indices...")
 # Convert labels to indices
@@ -103,8 +108,8 @@ print("Training samples:", len(X_train))
 print("Preparing data for BlazingText...")
 def prepare_blazingtext_data(texts, labels):
     data = []
-    for text, label in zip(texts, labels):
-        label_str = f'__label__{label}'
+    for text, label_idx in zip(texts, labels):
+        label_str = f'__label__{label_idx}'
         data.append(f'{label_str} {text}')
     return data
 
