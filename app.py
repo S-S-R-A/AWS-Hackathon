@@ -57,6 +57,20 @@ def get_prediction_result_from_s3(result_filename):
         app.logger.error(f"Failed to read prediction result from S3: {e}")
         return None
 
+def clear_input_folder():
+    try:
+        # List all objects in the 'input/raw_file/' folder
+        response = s3_client.list_objects_v2(Bucket=S3_BUCKET, Prefix='input/raw_file/')
+        
+        if 'Contents' in response:
+            for obj in response['Contents']:
+                # Delete each object
+                s3_client.delete_object(Bucket=S3_BUCKET, Key=obj['Key'])
+        app.logger.info("Input folder cleared successfully.")
+    except Exception as e:
+        app.logger.error(f"Failed to clear input folder: {e}")
+        raise e
+
 @app.route('/upload-and-process', methods=['POST'])
 def upload_and_process():
     if 'file' not in request.files:
@@ -73,6 +87,9 @@ def upload_and_process():
     filename = secure_filename(file.filename)
 
     try:
+        # Clear the input folder in the S3 bucket before uploading a new file
+        clear_input_folder()
+
         # Upload the file to S3
         file_url = upload_file_to_s3(file, filename)
 
