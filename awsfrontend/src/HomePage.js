@@ -66,9 +66,12 @@ const HomePage = () => {
       navigate('/results', {
         state: {
           fileUrl: response.data.file_url, // URL of the uploaded file in S3
+          predicted_label: response.data.predicted_label, // Predicted document type
+          confidence: response.data.confidence, // Confidence score
           lang: i18n.language,
         },
       });
+
     } catch (error) {
       // Handle error
       if (error.response) {
@@ -108,12 +111,17 @@ const HomePage = () => {
 
       // Handle success response
       console.log('Photo uploaded and processed successfully:', res.data);
+
+      // Navigate to the results page, passing any necessary data
       navigate('/results', {
         state: {
-          fileUrl: res.data.file_url,
+          fileUrl: res.data.file_url, // URL of the uploaded file in S3
+          predicted_label: res.data.predicted_label, // Predicted document type
+          confidence: res.data.confidence, // Confidence score
           lang: i18n.language,
         },
       });
+
     } catch (error) {
       // Handle error
       if (error.response) {

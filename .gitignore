@@ -5,3 +5,11 @@ venv/
 
 #ignore json files
 *.json
+
+#ignore pycache
+__pycache__/
+
+aws_sagemaker/data/
+
+!label_mapping.json
+aws_textract/out/
