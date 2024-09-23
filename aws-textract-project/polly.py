@@ -21,7 +21,7 @@ LANGAUGE_TO_VOICE = {
 
 def text_to_speech(text, output_filename, language):
 
-    voice_id = LANGAUGE_TO_VOICE.get((), "Matthew")
+    voice_id = LANGAUGE_TO_VOICE.get(language, "Matthew")
 
     response = polly_client.synthesize_speech(
 
@@ -40,13 +40,11 @@ def text_to_speech(text, output_filename, language):
     # while mixer.music.get_busy():
     #     continue
 
-def get_polly_mp3_narration(text):
-    
-    language = "" # data.get('selectedLanguage', 'en') 
+def get_polly_mp3_narration(text, language): 
 
     # file_path = 'example idk where its at'
     # with open(file_path, 'r') as file:
     #     text = file.read()
 
-    output_audio_file = 'output.mp3'
+    output_audio_file = 'translated_output.mp3'
     text_to_speech(text, output_audio_file, language) 
