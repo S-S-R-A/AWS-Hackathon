@@ -13,24 +13,19 @@ const ResultsPage = () => {
   const { state } = useLocation();
   const [play] = useSound('/audio.mp3');
   const navigate = useNavigate();
-  const { fileUrl, lang, predicted_label, confidence } = state || {};
+  const { fileUrl, lang, predicted_label, confidence, mp3_url } = state || {};
   const [showOptions, setShowOptions] = useState(false);
   const [showWebcam, setShowWebcam] = useState(false); // New state to toggle webcam
   const [photoURL, setPhotoURL] = useState(null);
   const webcamRef = useRef(null);  // React Webcam ref
 
-  AWS.config.update({
-    region: 'us-east-1', // e.g., 'us-east-1'
-    accessKeyId: 'AKIA2NK3YPN7DPYERYII',
-    secretAccessKey: 'nH23HN6Bg+I7wBLpCxqEt8N0HRkHrybzmt4/ZX3b'
-  });
+  
   
   const s3 = new AWS.S3();
   const bucketName = 'polly-wav';
 
   // Audio Recording Hooks
   const [isRecording, setIsRecording] = useState(false); // Whether it's recording
-  //const [audioURL, setAudioURL] = useState(''); // URL for playback of recording
   const mediaRecorderRef = useRef(null); // MediaRecorder reference for recording
   const [audioChunks, setAudioChunks] = useState([]); // To store audio data chunks
   const [buttonImage, setButtonImage] = useState("/microphoneIcon.png");
@@ -38,12 +33,10 @@ const ResultsPage = () => {
   const selectedlanguage = lang || localStorage.getItem('selectedLanguage') || 'en';
   let language;
 
-  if(selectedlanguage === 'es')
-  {
+  if(selectedlanguage === 'es') {
       language = 'es-ES'
   }
-  else if(selectedlanguage === 'zh')
-  {
+  else if(selectedlanguage === 'zh') {
     language = 'zh-CN'
   }
   else{
@@ -55,10 +48,10 @@ const ResultsPage = () => {
   }, [i18n, selectedlanguage, state]); // Include selectedLanguage in the dependency array
 
   // State for MP3 URL
-  const [mp3Url, setMp3Url] = useState(null);
+  const [mp3Url, setMp3Url] = useState(mp3_url || null);
   const audioRef = useRef(null); // Ref for the audio element
 
-  // Automatically set mp3Url when available
+  // Automatically play the audio when mp3Url is set
   useEffect(() => {
     if (mp3Url && audioRef.current) {
       audioRef.current.play().catch(error => {
@@ -74,8 +67,8 @@ const ResultsPage = () => {
         const response = await fetch('http://localhost:8080/get-mp3-url'); // Replace with your backend URL
         if (response.ok) {
           const data = await response.json();
-          if (data.mp3Urll) {
-            setMp3Url(data.mp3Url);
+          if (data.mp3_url) {
+            setMp3Url(data.mp3_url);
           }
         }
       } catch (error) {
@@ -112,8 +105,7 @@ const ResultsPage = () => {
     setShowWebcam(false);  // Turn off the webcam after capturing the photo
   };
 
-  // Audio Recording Methods (Same as before)
-  // Start recording 
+  // Audio Recording Methods
   const startRecording = async () => {
     setIsRecording(true);
     setAudioChunks([]);
@@ -167,7 +159,6 @@ const ResultsPage = () => {
       Body: audioBlob,
       ContentType: 'audio/wav'
     };
-
     
     // Prepare the language data as a JSON object
     const langData = {
@@ -180,7 +171,6 @@ const ResultsPage = () => {
       Body: JSON.stringify(langData), // Convert langData to a JSON string
       ContentType: 'application/json', // Set content type to JSON
     };
-    
     
     try {
       const uploadResult = await s3.upload(params).promise();
@@ -209,7 +199,6 @@ const ResultsPage = () => {
   };
     
   const transcribe = new AWS.TranscribeService();
-  
   
   const startTranscription = async (fileUrl, language) => {
     console.log("language: " + language)
