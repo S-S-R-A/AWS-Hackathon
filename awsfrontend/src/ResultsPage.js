@@ -114,7 +114,7 @@ const ResultsPage = () => {
   
   // Upload function to send the WAV file to S3
   const uploadToS3 = async (audioBlob) => {
-    const fileName = `audio_${Date.now()}.wav`; // Create a unique file name
+    const fileName = `audio.wav`; // Create a unique file name
     const params = {
       Bucket: bucketName,
       Key: fileName,
@@ -151,7 +151,7 @@ const stopRecording = () => {
   const startTranscription = async (fileUrl, language) => {
     console.log("language: " + language)
     const params = {
-      TranscriptionJobName: `TranscriptionJob-${Date.now()}`, // Unique job name
+      TranscriptionJobName: `TranscriptionJob`, // Unique job name
       LanguageCode: language, // Set the language
       Media: {
         MediaFileUri: fileUrl, // S3 URI for the audio file
