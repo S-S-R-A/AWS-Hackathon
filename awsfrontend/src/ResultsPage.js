@@ -20,9 +20,9 @@ const ResultsPage = () => {
   const webcamRef = useRef(null);  // React Webcam ref
 
   AWS.config.update({
-    region: AWS_REGION, // e.g., 'us-east-1'
-    accessKeyId: AWS_ACCESS_KEY_ID,
-    secretAccessKey: AWS_SECRET_ACCESS_KEY,
+    region: region, // e.g., 'us-east-1'
+    accessKeyId: id,
+    secretAccessKey: key,
   });
 
 
