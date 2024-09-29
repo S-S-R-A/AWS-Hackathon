@@ -43,15 +43,7 @@ except Exception as e:
     exit(1)
 
 def predict_text(predictor, ocr_json, idx_to_label, threshold=0.5):
-    """
-    Predict the document type using SageMaker.
-
-    :param predictor: SageMaker Predictor object
-    :param ocr_json: Dictionary containing OCR data
-    :param idx_to_label: Dictionary mapping label indices to labels
-    :param threshold: Confidence threshold for predictions
-    :return: Tuple of (predicted_label, confidence) or (None, None)
-    """
+  
     if not predictor:
         logger.error("Predictor is not initialized.")
         return None, None

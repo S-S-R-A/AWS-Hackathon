@@ -19,7 +19,13 @@ const ResultsPage = () => {
   const [photoURL, setPhotoURL] = useState(null);
   const webcamRef = useRef(null);  // React Webcam ref
 
-  
+  AWS.config.update({
+    region: AWS_REGION, // e.g., 'us-east-1'
+    accessKeyId: AWS_ACCESS_KEY_ID,
+    secretAccessKey: AWS_SECRET_ACCESS_KEY,
+  });
+
+
   
   const s3 = new AWS.S3();
   const bucketName = 'polly-wav';
