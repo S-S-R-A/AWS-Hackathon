@@ -18,6 +18,7 @@ const ResultsPage = () => {
   const [showWebcam, setShowWebcam] = useState(false); // New state to toggle webcam
   const [photoURL, setPhotoURL] = useState(null);
   const webcamRef = useRef(null);  // React Webcam ref
+
   
   const s3 = new AWS.S3();
   const bucketName = 'polly-wav';
