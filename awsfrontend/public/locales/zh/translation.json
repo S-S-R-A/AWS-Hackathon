@@ -5,6 +5,10 @@
     "Upload a file": "上传文件",
     "Take a photo": "拍张照片",
     "Capture Photo": "拍摄照片",
-    "Captured Photo": "Captured Photo",
-    "Close": "关闭"
+    "Captured Photo": "拍摄的照片",
+    "Predicted Document Type": "预测文档类型", 
+    "non-w2" : "非w2",
+    "Close": "关闭",
+    "Unknown": "未知"
+
   }

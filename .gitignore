@@ -3,4 +3,6 @@ venv/
 .venv/
 
 #ignore json files
-*.json
+*.json.env
+.env
+.env.local

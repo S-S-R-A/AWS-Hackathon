@@ -1,7 +1,8 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import ReactWebcam from 'react-webcam';
+import axios from 'axios';
 import './i18n';
 import './styles/HomePage.css';
 
@@ -42,26 +43,91 @@ const HomePage = () => {
     setShowOptions(true); // Show options to upload or take a photo
   };
 
-  const handleUploadFile = (event) => {
+  const handleUploadFile = async (event) => {
     const file = event.target.files[0];
-    const fileUrl = URL.createObjectURL(file);
-    console.log('Uploaded file:', file);
-    navigate('/results', {
-      state: { 
-        file: fileUrl, 
-        fileType: 'application/pdf',
-        lang: i18n.language // Pass the current language along
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await axios.post('http://localhost:8080/upload-and-process', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      // Handle success response
+      console.log('File uploaded and processed successfully:', response.data);
+
+      // Navigate to the results page, passing any necessary data
+      navigate('/results', {
+        state: {
+          fileUrl: response.data.file_url, // URL of the uploaded file in S3
+          predicted_label: response.data.predicted_label, // Predicted document type
+          confidence: response.data.confidence, // Confidence score
+          lang: i18n.language,
+        },
+
+        
+      });
+
+    } catch (error) {
+      // Handle error
+      if (error.response) {
+        console.error('Error response:', error.response);
+        alert(`Error: ${error.response.status} - ${error.response.data.error}`);
+      } else if (error.request) {
+        console.error('Error request:', error.request);
+        alert('No response received from server.');
+      } else {
+        console.error('Error message:', error.message);
+        alert(`Error: ${error.message}`);
       }
-    });
+    }
   };
 
-  const capturePhoto = () => {
-    const imageSrc = webcamRef.current.getScreenshot(); // Get the screenshot from the webcam
-    setPhotoURL(imageSrc);
-    navigate('/results', { state: { file: imageSrc, fileType: 'image/png' } });
-  };
+  const capturePhoto = async () => {
+    const imageSrc = webcamRef.current.getScreenshot();
 
-  
+    const response = await fetch(imageSrc);
+    const blob = await response.blob();
+    const file = new File([blob], 'photo.png', { type: 'image/png' });
+
+    const formData = new FormData();
+    formData.append('file', file);
+    
+
+    try {
+      const res = await axios.post('http://localhost:8080/upload-and-process', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      console.log('Photo uploaded and processed successfully:', res.data);
+
+      navigate('/results', {
+        state: {
+          fileUrl: res.data.file_url,
+          predicted_label: res.data.predicted_label,
+          confidence: res.data.confidence,
+          lang: i18n.language,
+        },
+      });
+
+    } catch (error) {
+      if (error.response) {
+        console.error('Error response:', error.response);
+        alert(`Error: ${error.response.status} - ${error.response.data.error}`);
+      } else if (error.request) {
+        console.error('Error request:', error.request);
+        alert('No response received from server.');
+      } else {
+        console.error('Error message:', error.message);
+        alert(`Error: ${error.message}`);
+      }
+    }
+  };
 
   return (
     <div className="container">
@@ -126,11 +192,10 @@ const HomePage = () => {
             style={{ display: 'none' }}
             onChange={handleUploadFile}
           />
-          <button>{t('Take a photo')}</button>
+          <button onClick={capturePhoto}>{t('Take a photo')}</button>
 
           <div className="camera-preview">
-          <ReactWebcam ref={webcamRef} screenshotFormat="image/png" style={{ width: '600px', height: 'auto' }} />
-            <button onClick={capturePhoto}>{t('Capture Photo')}</button>
+            <ReactWebcam ref={webcamRef} screenshotFormat="image/png" style={{ width: '600px', height: 'auto' }} />
           </div>
         </div>
       )}
